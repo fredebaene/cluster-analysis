@@ -1,0 +1,144 @@
+---
+title: "Hierarchical Clustering"
+output:
+  html_document:
+    df_print: paged
+---
+
+## Introductory Example and Cluster analysis
+
+The linkage criterium is the decision rule used to decide which of the 
+observations is the closest to an already existing group. There are different 
+linkage criteria (linkage methods):
+
+- complete linkage : based on the maximum distance between two sets
+- single linkage : based on the minimum distance between two sets
+- average linkage : based on the average distance between two sets
+
+The order in which the observations are grouped, which is determined by the 
+linkage criterium (method), results in a hierarchy based on distance, hence, 
+hierarchical clustering.
+
+Hierarchical clustering can now be used to group the observations in a number 
+of pre-defined clusters, i.e., k clusters.
+
+```{r}
+# Load packages
+library(tidyverse)
+library(dendextend)
+```
+
+```{r}
+# Data frame with player positions
+players <- data.frame(
+  x = c(-1, -2, 8, 7, -12, -15, -13, 15, 21, 12, -25, 26),
+  y = c(1, -3, 6, -8, 8, 0, -10, 16, 2, -15, 1, 0)
+)
+```
+
+```{r}
+# Distance matrix
+dist_players <- dist(players, method = "euclidean")
+
+# Perform the iterative linkage steps using the complete linkage method
+hc_players <- hclust(dist_players, method = "complete")
+
+# Extract two clusters
+cluster_assignments <- cutree(hc_players, k = 2)
+
+# Assign the cluster IDs to the players
+clustered_players <- dplyr::mutate(players, cluster = cluster_assignments)
+```
+
+## Assessing Results of Cluster Analysis
+
+Clustering analysis is in part a qualitative analysis. Thus, the necessary 
+tools must be known to assess (or evaluate) the results of the cluster 
+analysis.
+
+```{r}
+# Count the number of players in each cluster
+dplyr::count(clustered_players, cluster)
+```
+
+```{r}
+# Visualize the positions of the players
+ggplot(clustered_players, aes(x, y, color = factor(cluster))) +
+  geom_point()
+```
+
+Remember, the results of hierarchical cluster analysis are formed by the 
+following choices:
+
+- the method by which the distance is calculated, e.g. Euclidean
+- the linkage method, e.g. complete linkage
+- the number of pre-defined cluster, i.e., k clusters.
+
+## Using the Dendrogram
+
+The dendrogram is used to visualize how the observations within the data set 
+are iteratively linked with one another. One specific characteristic of the 
+dendrogram is that the branches encode the distance of the observations falling 
+under that branch.
+
+```{r}
+# Create dendrogram
+plot(hc_players)
+```
+
+Taking into account the linkage method, the dendrogram can be used to visualize 
+the clustering of observations based on a distance cutoff value, i.e., a height 
+cutoff value.
+
+```{r}
+# Create dendrogram object
+dend_players <- as.dendrogram(hc_players)
+plot(dend_players)
+```
+
+```{r}
+# Cluster based on distance
+dend_colored <- color_branches(dend_players, h = 35)
+plot(dend_colored)
+```
+
+The cutree() function can also be used to create clusters not based on a number 
+of pre-defined clusters, i.e., k clusters, but on a cutoff height.
+
+```{r}
+# Create cluster assignments based on cutoff height of 20
+cluster_assignments_h20 <- cutree(hc_players, h = 20)
+players_clustered_h20 <- mutate(players, cluster = cluster_assignments_h20)
+
+# Visualize clustering
+ggplot(players_clustered_h20, aes(x, y, color = factor(cluster))) +
+  geom_point()
+```
+
+```{r}
+# Create cluster assignments based on cutoff height of 40
+cluster_assignments_h40 <- cutree(hc_players, h = 40)
+players_clustered_h40 <- mutate(players, cluster = cluster_assignments_h40)
+
+# Visualize clustering
+ggplot(players_clustered_h40, aes(x, y, color = factor(cluster))) +
+  geom_point()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
